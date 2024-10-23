@@ -29,7 +29,7 @@ func NewPlayer() Player {
 func (p *Player) Draw() {
 
 	// need the sprite to face the right so rotate by 90 degs
-	DrawTextureEz(p.Sprite, p.Position, 90, 1.5, rl.White)
+	DrawTextureEz(p.Sprite, p.Position, 90, 1, rl.White)
 }
 
 
@@ -47,16 +47,20 @@ func (p *Player) Move() {
 		p.Position.Y += 5
 	}
 
-	 // Define boundaries: the top and bottom edges of the screen
-	 screenHeight := float32(rl.GetScreenHeight())
+	 // grab the screen height to make a border
+	screenHeight := float32(rl.GetScreenHeight())
 
-	 // The Y boundaries need to account for the sprite's half-height, since its origin is in the center
-	 spriteHalfHeight := float32(p.Sprite.Height) * 1.5 / 2 // 1.5 is the scaling factor
+	 // take the sprites height, and scale and divide it by 2 to take into account for boundaries
+	spriteHalfHeight := float32(p.Sprite.Height) * 1 / 2 // 
  
-	 // Clamp the player's Y position so they stay on screen
-	 if p.Position.Y - spriteHalfHeight < 0 {
+	 // make the boundaries
+	if p.Position.Y - spriteHalfHeight < 0 {
+
 		 p.Position.Y = spriteHalfHeight
-	 } else if p.Position.Y + spriteHalfHeight > screenHeight {
+	}
+
+	if p.Position.Y + spriteHalfHeight > screenHeight {
+
 		 p.Position.Y = screenHeight - spriteHalfHeight
-	 }
+	} 
 }
