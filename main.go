@@ -40,11 +40,12 @@ func main() {
 	}
 
 	// initialize background animation
+	// increase the frames with frame speed
 	backgroundAnimation := BackgroundAnimation{
 		Frames:       frames,
 		CurrentFrame: 0,
 		FrameCounter: 0,
-		FrameSpeed:   10,
+		FrameSpeed:   6,
 	}
 
 	for !rl.WindowShouldClose() {
