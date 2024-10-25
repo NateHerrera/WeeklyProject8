@@ -1,32 +1,53 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
-// backgroundAnimation struct to manage frame-based animation
+// setting up a "game" struct to hold info about the game state and menu buttons
+type Game struct {
+	State       GameState
+	States      GameStates
+	StartButton *Button
+	QuitButton  *Button
+}
+
+// making a type for different game states so we can track where the player is in the game
+type GameState int
+
+// holding different game state options like menu, playing, and game over
+type GameStates struct {
+	Menu     GameState
+	Playing  GameState
+	GameOver GameState
+}
+
+// struct to handle the background animation frames
 type BackgroundAnimation struct {
-	Frames       []rl.Texture2D
-	CurrentFrame int
-	FrameCounter int
-	FrameSpeed   int
+	Frames       []rl.Texture2D // all the animation frames for the background
+	CurrentFrame int            // keeps track of which frame is being shown
+	FrameCounter int            // counts frames to control speed of the animation
+	FrameSpeed   int            // sets speed of frame switching
 }
 
 func main() {
-	rl.InitWindow(800, 450, "Space Bandit Defender")
-	defer rl.CloseWindow()
+	// start up the game window
+	rl.InitWindow(1600, 900, "Space Bandit Defender")
+	defer rl.CloseWindow() // close the window when the game ends
 
+	// set the frames per second (fps) so it runs smoothly
 	rl.SetTargetFPS(60)
 
-	// initialize audio device
+	// set up audio stuff for the game
 	rl.InitAudioDevice()
-	LoadAudio()
+	LoadAudio() // load in-game sounds (defined elsewhere)
+	game := InitializeGame() // initialize game states and menu buttons
 
-	// create two player instances, one on the left side (normal) and one on the right side (mirrored)
-	// the size is 48x48 so offset by 50
-	// check if mirrored with true or false
+	// create two players, one on each side
 	player1 := NewPlayer(rl.NewVector2(50, float32(rl.GetScreenHeight())/2), false)
 	player2 := NewPlayer(rl.NewVector2(float32(rl.GetScreenWidth())-50, float32(rl.GetScreenHeight())/2), true)
 
-	// load frames from a gif that was split using ezgif
+	// loading animation frames from image files for the background
 	frames := []rl.Texture2D{
 		rl.LoadTexture("assets/frame_0_delay-0.1s.gif"),
 		rl.LoadTexture("assets/frame_1_delay-0.1s.gif"),
@@ -39,61 +60,130 @@ func main() {
 		rl.LoadTexture("assets/frame_8_delay-0.1s.gif"),
 	}
 
-	// initialize background animation
-	// increase the frames with frame speed
+	// setting up the background animation with frames, starting at frame 0
 	backgroundAnimation := BackgroundAnimation{
 		Frames:       frames,
 		CurrentFrame: 0,
 		FrameCounter: 0,
-		FrameSpeed:   6,
+		FrameSpeed:   6, // controls how fast frames switch
 	}
 
-	for !rl.WindowShouldClose() {
-		rl.BeginDrawing()
+	// making a semi-transparent black color for the hud background
+	hudColor := rl.NewColor(0, 0, 0, 128)
 
-		// update the frame counter and switch frames
+	// main game loop - this keeps running till the window closes
+	for !rl.WindowShouldClose() {
+		// start drawing everything to the screen
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.Black) // set a black background
+
+		// update music stream each frame so it keeps playing
+		rl.UpdateMusicStream(gameAudio.BackgroundMusic)
+
+
+		// update background animation frame counter and change frame if needed
 		backgroundAnimation.FrameCounter++
 		if backgroundAnimation.FrameCounter >= backgroundAnimation.FrameSpeed {
-			backgroundAnimation.FrameCounter = 0
-			backgroundAnimation.CurrentFrame++
+			backgroundAnimation.FrameCounter = 0 // reset frame counter
+			backgroundAnimation.CurrentFrame++   // move to next frame
 			if backgroundAnimation.CurrentFrame >= len(backgroundAnimation.Frames) {
-				backgroundAnimation.CurrentFrame = 0 // loop back to the first frame
+				backgroundAnimation.CurrentFrame = 0 // loop back to first frame if needed
 			}
 		}
 
-		// get current texture (frame) for the animation
+		// get the current texture frame for the background animation
 		currentTexture := backgroundAnimation.Frames[backgroundAnimation.CurrentFrame]
 
-		// calculate the destination rectangle to scale the frame to the window size
+		// set up the rectangle for background size and placement
 		windowWidth := float32(rl.GetScreenWidth())
 		windowHeight := float32(rl.GetScreenHeight())
-		destRect := rl.NewRectangle(0, 0, windowWidth, windowHeight)
-
-		// source rectangle is the full texture
+		destRect := rl.NewRectangle(0, 0, windowWidth, windowHeight) // fit the whole window
 		sourceRect := rl.NewRectangle(0, 0, float32(currentTexture.Width), float32(currentTexture.Height))
+		rl.DrawTexturePro(currentTexture, sourceRect, destRect, rl.NewVector2(0, 0), 0, rl.White) // draw it
 
-		// no rotation, origin at (0,0)
-		rl.DrawTexturePro(currentTexture, sourceRect, destRect, rl.NewVector2(0, 0), 0, rl.White)
+		// if we're on the menu screen, add a semi-transparent overlay for the hud
+		if game.State == game.States.Menu {
+			rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), hudColor)
+		}
 
-		// player 1 movement (normal) with W and S keys
-		player1.Move(rl.KeyW, rl.KeyS)
-		player1.Draw()
+		// check game state to see what to draw
+		switch game.State {
+		case game.States.Menu:
+			// on menu screen, draw the start and quit buttons
+			game.StartButton.Update()
+			game.QuitButton.Update()
 
-		// player 2 mirrors player 1's movement
-		player2.Move(rl.KeyW, rl.KeyS)
-		player2.Draw()
+		case game.States.Playing:
+			// on playing screen, move players and draw them
+			player1.Move(rl.KeyW, rl.KeyS)
+			player1.Draw()
+			player2.Move(rl.KeyW, rl.KeyS)
+			player2.Draw()
 
+		case game.States.GameOver:
+			// on game over screen, just show "Game Over" text
+			rl.DrawText("Game Over", 350, 200, 30, rl.Red)
+		}
+
+		// finish drawing everything for this frame
 		rl.EndDrawing()
 	}
 
+	// when the loop ends, close the game window
 	rl.CloseWindow()
 }
 
-// drawTextureEz draws a texture centered at its origin with rotation and scaling
+// helper function to draw a texture with rotation and scaling
 func DrawTextureEz(texture rl.Texture2D, pos rl.Vector2, angle float32, scale float32, color rl.Color) {
+	// set up the source and destination rectangles for the texture
 	sourceRect := rl.NewRectangle(0, 0, float32(texture.Width), float32(texture.Height))
 	destRect := rl.NewRectangle(pos.X, pos.Y, float32(texture.Width)*scale, float32(texture.Height)*scale)
-	origin := rl.Vector2Scale(rl.NewVector2(float32(texture.Width)/2, float32(texture.Height)/2), scale)
+	origin := rl.NewVector2(float32(texture.Width)/2*scale, float32(texture.Height)/2*scale) // center point for rotation
 
+	// draw the texture with rotation and scaling
 	rl.DrawTexturePro(texture, sourceRect, destRect, origin, angle, color)
+}
+
+// initialize the game, set up menu buttons and game states
+func InitializeGame() *Game {
+	// define game states
+	states := GameStates{
+		Menu:     0,
+		Playing:  1,
+		GameOver: 2,
+	}
+
+	// create the game struct with menu state as default
+	game := &Game{
+		State:  states.Menu,
+		States: states,
+	}
+
+	// set button color (white)
+	buttonColor := rl.NewColor(255, 255, 255, 255)
+
+	// define button size and spacing
+	buttonWidth := int32(300)
+	buttonHeight := int32(100)
+	buttonSpacing := int32(20)
+
+	// calculate starting y-position for the "Start Game" button
+	startY := (int32(rl.GetScreenHeight()) - (buttonHeight * 2 + buttonSpacing)) / 2
+
+	// set up "Start Game" button, center horizontally
+	game.StartButton = NewButton(0, startY, buttonWidth, buttonHeight, buttonColor)
+	game.StartButton.SetText("Start Game", 20)
+	game.StartButton.CenterButtonX() // only center horizontally
+	game.StartButton.AddOnClickFunc(func() {
+		// when "Start Game" is clicked, switch to playing state
+		game.State = game.States.Playing
+	})
+
+	// set up "Quit Game" button below the "Start Game" button, center horizontally
+	game.QuitButton = NewButton(0, startY+buttonHeight+buttonSpacing, buttonWidth, buttonHeight, buttonColor)
+	game.QuitButton.SetText("Quit Game", 20)
+	game.QuitButton.CenterButtonX() // only center horizontally
+	game.QuitButton.AddOnClickFunc(rl.CloseWindow) // exits game when clicked
+
+	return game // return game struct with initialized states and buttons
 }

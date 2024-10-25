@@ -20,4 +20,7 @@ func LoadAudio() {
 	// going to add a monkey defeat sound later
 	// gameAudio.MonkeyDefeat = rl.LoadSound("assets/")
 	gameAudio.PlayerPoint = rl.LoadSound("assets/playercollect.wav")
+
+	// start playing the music in a loop
+	rl.PlayMusicStream(gameAudio.BackgroundMusic)
 }
