@@ -23,4 +23,7 @@ func LoadAudio() {
 
 	// start playing the music in a loop
 	rl.PlayMusicStream(gameAudio.BackgroundMusic)
+
+	// set the music volume
+	rl.SetMusicVolume(gameAudio.BackgroundMusic, 0.5)
 }
