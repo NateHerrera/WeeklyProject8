@@ -6,10 +6,11 @@ import (
 
 // create a player struct to handle the player
 type Player struct {
-	Position   rl.Vector2
-	Speed      float32
-	Sprite     rl.Texture2D
-	IsMirrored bool
+	Position        rl.Vector2
+	Speed           float32
+	Sprite          rl.Texture2D
+	IsMirrored      bool
+	ShotProjectiles []Projectile
 }
 
 // create a new player with an initial position, sprite, and return it
@@ -18,7 +19,7 @@ func NewPlayer(pos rl.Vector2, isMirrored bool) Player {
 	sprite := rl.LoadTexture("assets/ship.png")
 
 	// return the player with the starting position, sprite, and mirrored flag
-	return Player{Position: pos, Sprite: sprite, IsMirrored: isMirrored}
+	return Player{Position: pos, Speed: 120, Sprite: sprite, IsMirrored: isMirrored, ShotProjectiles: make([]Projectile, 0, 100)}
 }
 
 // draw the player using the ship sprite
@@ -34,24 +35,24 @@ func (p *Player) Draw() {
 // move the player, accounting for mirroring if needed
 func (p *Player) Move(upKey, downKey int32) {
 	// set the speed
-	p.Speed = 100 * rl.GetFrameTime()
+	adjustedSpeed := p.Speed * rl.GetFrameTime()
 
 	// if the player is not mirrored (Player 1), move normally
 	if !p.IsMirrored {
 		// handle normal movement
 		if rl.IsKeyDown(upKey) {
-			p.Position.Y -= 5
+			p.Position.Y -= adjustedSpeed
 		}
 		if rl.IsKeyDown(downKey) {
-			p.Position.Y += 5
+			p.Position.Y += adjustedSpeed
 		}
 	} else {
 		// handle mirrored movement
 		if rl.IsKeyDown(upKey) {
-			p.Position.Y += 5 // invert movement
+			p.Position.Y += adjustedSpeed // invert movement
 		}
 		if rl.IsKeyDown(downKey) {
-			p.Position.Y -= 5 // invert movement
+			p.Position.Y -= adjustedSpeed // invert movement
 		}
 	}
 
