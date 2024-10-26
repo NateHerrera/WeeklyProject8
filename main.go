@@ -40,7 +40,7 @@ func main() {
 
 	// set up audio stuff for the game
 	rl.InitAudioDevice()
-	LoadAudio() // load in-game sounds (defined elsewhere)
+	LoadAudio()              // load in-game sounds (defined elsewhere)
 	game := InitializeGame() // initialize game states and menu buttons
 
 	// create two players, one on each side
@@ -80,7 +80,6 @@ func main() {
 		// update music stream each frame so it keeps playing
 		rl.UpdateMusicStream(gameAudio.BackgroundMusic)
 
-
 		// update background animation frame counter and change frame if needed
 		backgroundAnimation.FrameCounter++
 		if backgroundAnimation.FrameCounter >= backgroundAnimation.FrameSpeed {
@@ -115,10 +114,19 @@ func main() {
 
 		case game.States.Playing:
 			// on playing screen, move players and draw them
+			if rl.IsKeyPressed(rl.KeySpace) {
+				player1.ShootProjectile()
+				player2.ShootProjectile()
+				rl.PlaySound(gameAudio.ShootingSound)
+			}
 			player1.Move(rl.KeyW, rl.KeyS)
 			player1.Draw()
+			player1.UpdateShotProjectiles()
+			player1.DrawShotProjectiles()
 			player2.Move(rl.KeyW, rl.KeyS)
 			player2.Draw()
+			player2.UpdateShotProjectiles()
+			player2.DrawShotProjectiles()
 
 		case game.States.GameOver:
 			// on game over screen, just show "Game Over" text
@@ -168,7 +176,7 @@ func InitializeGame() *Game {
 	buttonSpacing := int32(20)
 
 	// calculate starting y-position for the "Start Game" button
-	startY := (int32(rl.GetScreenHeight()) - (buttonHeight * 2 + buttonSpacing)) / 2
+	startY := (int32(rl.GetScreenHeight()) - (buttonHeight*2 + buttonSpacing)) / 2
 
 	// set up "Start Game" button, center horizontally
 	game.StartButton = NewButton(0, startY, buttonWidth, buttonHeight, buttonColor)
@@ -182,7 +190,7 @@ func InitializeGame() *Game {
 	// set up "Quit Game" button below the "Start Game" button, center horizontally
 	game.QuitButton = NewButton(0, startY+buttonHeight+buttonSpacing, buttonWidth, buttonHeight, buttonColor)
 	game.QuitButton.SetText("Quit Game", 20)
-	game.QuitButton.CenterButtonX() // only center horizontally
+	game.QuitButton.CenterButtonX()                // only center horizontally
 	game.QuitButton.AddOnClickFunc(rl.CloseWindow) // exits game when clicked
 
 	return game // return game struct with initialized states and buttons

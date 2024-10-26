@@ -22,6 +22,17 @@ func NewPlayer(pos rl.Vector2, isMirrored bool) Player {
 	return Player{Position: pos, Speed: 120, Sprite: sprite, IsMirrored: isMirrored, ShotProjectiles: make([]Projectile, 0, 100)}
 }
 
+func (p *Player) ShootProjectile() {
+	offset := p.Sprite.Width / 2
+	newSpeed := 120
+	if p.IsMirrored {
+		offset *= -1
+		newSpeed *= -1
+	}
+	newProjectile := CreateProjectile(10, rl.NewVector2(p.Position.X+float32(offset), p.Position.Y), rl.NewVector2(float32(newSpeed), 0))
+	p.ShotProjectiles = append(p.ShotProjectiles, newProjectile)
+}
+
 // draw the player using the ship sprite
 func (p *Player) Draw() {
 	// rotate player 1 by 90 degrees, and player 2 by -90 degrees
@@ -30,6 +41,12 @@ func (p *Player) Draw() {
 		rotation = -90
 	}
 	DrawTextureEz(p.Sprite, p.Position, rotation, 1, rl.White)
+}
+
+func (p *Player) DrawShotProjectiles() {
+	for _, v := range p.ShotProjectiles {
+		v.DrawProjectile()
+	}
 }
 
 // move the player, accounting for mirroring if needed
@@ -72,5 +89,11 @@ func (p *Player) Move(upKey, downKey int32) {
 
 	if p.Position.Y+spriteHalfHeight > screenHeight {
 		p.Position.Y = screenHeight - spriteHalfHeight
+	}
+}
+
+func (p *Player) UpdateShotProjectiles() {
+	for i := 0; i < len(p.ShotProjectiles); i++ {
+		p.ShotProjectiles[i].MoveProjectile()
 	}
 }
