@@ -22,10 +22,10 @@ func SpawnEnemy(newSprite rl.Texture2D) Enemy {
 	var newSpeed float32
 	switch rl.GetRandomValue(0, 1) {
 	case 0:
-		newSpeed = -50
+		newSpeed = -100
 
 	case 1:
-		newSpeed = 50
+		newSpeed = 100
 	}
 
 	row := int(rl.GetRandomValue(1, 5))

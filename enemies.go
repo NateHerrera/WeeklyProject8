@@ -31,6 +31,16 @@ func (es *Enemies) DrawEnemies() {
 	}
 }
 
+func (es *Enemies) CheckOffScreen(l *Lives) {
+	for i, v := range es.allEnemies {
+		if v.Position.X > float32(rl.GetScreenWidth()) || v.Position.X < 0 || v.Position.Y > float32(rl.GetScreenHeight()) || v.Position.Y < 0 {
+			es.allEnemies[i].Health = 0
+			rl.PlaySound(gameAudio.BananaTree)
+			l.Number--
+		}
+	}
+}
+
 func (es *Enemies) RemoveDeadEnemies() {
 	for i := 0; i < len(es.allEnemies); i++ {
 		if es.allEnemies[i].Health <= 0 {

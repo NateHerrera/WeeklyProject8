@@ -30,6 +30,11 @@ type BackgroundAnimation struct {
 	FrameSpeed   int            // sets speed of frame switching
 }
 
+type Lives struct {
+	Sprite rl.Texture2D
+	Number int
+}
+
 func main() {
 	// start up the game window
 	rl.InitWindow(1600, 900, "Space Bandit Defender")
@@ -47,6 +52,7 @@ func main() {
 	// create two players, one on each side
 	player1 := NewPlayer(rl.NewVector2(50, float32(rl.GetScreenHeight())/2), false)
 	player2 := NewPlayer(rl.NewVector2(float32(rl.GetScreenWidth())-50, float32(rl.GetScreenHeight())/2), true)
+	playerLives := NewLives()
 	playerEnemies := NewEnemies()
 	playerEnemies.AddEnemy()
 
@@ -75,6 +81,7 @@ func main() {
 
 	// making a semi-transparent black color for the hud background
 	hudColor := rl.NewColor(0, 0, 0, 128)
+	mutedHudColor := rl.NewColor(0, 0, 0, 64)
 
 	// main game loop - this keeps running till the window closes
 	for !rl.WindowShouldClose() {
@@ -104,7 +111,9 @@ func main() {
 		destRect := rl.NewRectangle(0, 0, windowWidth, windowHeight) // fit the whole window
 		sourceRect := rl.NewRectangle(0, 0, float32(currentTexture.Width), float32(currentTexture.Height))
 		rl.DrawTexturePro(currentTexture, sourceRect, destRect, rl.NewVector2(0, 0), 0, rl.White) // draw it
-
+		if playerLives.Number < 1 {
+			game.State = game.States.GameOver
+		}
 		// if we're on the menu screen, add a semi-transparent overlay for the hud
 		if game.State == game.States.Menu {
 			rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), hudColor)
@@ -140,6 +149,7 @@ func main() {
 			player2.CheckEnemiesOverlap(&playerEnemies)
 			player1.RemoveHitProjectiles()
 			player2.RemoveHitProjectiles()
+			playerEnemies.CheckOffScreen(&playerLives)
 			playerEnemies.RemoveDeadEnemies()
 			playerEnemies.DrawEnemies()
 			player1.Draw()
@@ -147,8 +157,12 @@ func main() {
 			player1.DrawShotProjectiles()
 			player2.DrawShotProjectiles()
 
+			rl.DrawRectangle(0, 0, 250, playerLives.Sprite.Height*2, mutedHudColor)
+			playerLives.DrawLives()
+
 		case game.States.GameOver:
 			// on game over screen, just show "Game Over" text
+			rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), hudColor)
 			rl.DrawText("Game Over", 350, 200, 30, rl.Red)
 		}
 
@@ -213,4 +227,18 @@ func InitializeGame() *Game {
 	game.QuitButton.AddOnClickFunc(rl.CloseWindow) // exits game when clicked
 
 	return game // return game struct with initialized states and buttons
+}
+
+func NewLives() Lives {
+	return Lives{
+		Sprite: rl.LoadTexture("assets/banana_tree.png"),
+		Number: 3,
+	}
+}
+
+func (l Lives) DrawLives() {
+	rl.DrawText("Lives:", 10, 20, 24, rl.White)
+	for i := 0; i < l.Number; i++ {
+		DrawTextureEz(l.Sprite, rl.NewVector2(float32(100+(50*i)), float32(l.Sprite.Height)), 0, 1, rl.White)
+	}
 }
