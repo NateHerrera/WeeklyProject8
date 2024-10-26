@@ -40,12 +40,17 @@ func main() {
 
 	// set up audio stuff for the game
 	rl.InitAudioDevice()
+	defer rl.CloseAudioDevice()
 	LoadAudio()              // load in-game sounds (defined elsewhere)
 	game := InitializeGame() // initialize game states and menu buttons
 
 	// create two players, one on each side
 	player1 := NewPlayer(rl.NewVector2(50, float32(rl.GetScreenHeight())/2), false)
 	player2 := NewPlayer(rl.NewVector2(float32(rl.GetScreenWidth())-50, float32(rl.GetScreenHeight())/2), true)
+	playerEnemies := NewEnemies()
+	playerEnemies.AddEnemy()
+
+	var spawnTimer float32 = 0
 
 	// loading animation frames from image files for the background
 	frames := []rl.Texture2D{
@@ -114,11 +119,18 @@ func main() {
 
 		case game.States.Playing:
 			// on playing screen, move players and draw them
+			spawnTimer += rl.GetFrameTime()
+			if spawnTimer > 5 {
+				playerEnemies.AddEnemy()
+				spawnTimer = 0
+			}
 			if rl.IsKeyPressed(rl.KeySpace) {
 				player1.ShootProjectile()
 				player2.ShootProjectile()
 				rl.PlaySound(gameAudio.ShootingSound)
 			}
+			playerEnemies.UpdateEnemies()
+			playerEnemies.DrawEnemies()
 			player1.Move(rl.KeyW, rl.KeyS)
 			player1.Draw()
 			player1.UpdateShotProjectiles()
