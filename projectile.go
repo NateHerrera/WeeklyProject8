@@ -6,6 +6,7 @@ type Projectile struct {
 	Radius float32
 	Pos    rl.Vector2
 	Vel    rl.Vector2
+	Hit    bool
 }
 
 func CreateProjectile(newRadius float32, newPos rl.Vector2, newVel rl.Vector2) Projectile {
@@ -13,6 +14,7 @@ func CreateProjectile(newRadius float32, newPos rl.Vector2, newVel rl.Vector2) P
 		Radius: newRadius,
 		Pos:    newPos,
 		Vel:    newVel,
+		Hit:    false,
 	}
 }
 
@@ -22,4 +24,8 @@ func (p *Projectile) MoveProjectile() {
 
 func (p Projectile) DrawProjectile() {
 	rl.DrawCircle(int32(p.Pos.X), int32(p.Pos.Y), p.Radius, rl.White)
+}
+
+func (p Projectile) CheckEnemyOverlap(e Enemy) bool {
+	return rl.Vector2Distance(p.Pos, e.Position) <= p.Radius+float32(e.Sprite.Width)
 }

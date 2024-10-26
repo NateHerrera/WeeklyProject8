@@ -30,3 +30,11 @@ func (es *Enemies) DrawEnemies() {
 		v.DrawEnemy()
 	}
 }
+
+func (es *Enemies) RemoveDeadEnemies() {
+	for i := 0; i < len(es.allEnemies); i++ {
+		if es.allEnemies[i].Health <= 0 {
+			es.allEnemies = append(es.allEnemies[:i], es.allEnemies[i+1:]...)
+		}
+	}
+}

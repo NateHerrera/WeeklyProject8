@@ -129,15 +129,22 @@ func main() {
 				player2.ShootProjectile()
 				rl.PlaySound(gameAudio.ShootingSound)
 			}
-			playerEnemies.UpdateEnemies()
-			playerEnemies.DrawEnemies()
+
 			player1.Move(rl.KeyW, rl.KeyS)
-			player1.Draw()
-			player1.UpdateShotProjectiles()
-			player1.DrawShotProjectiles()
 			player2.Move(rl.KeyW, rl.KeyS)
-			player2.Draw()
+
+			player1.UpdateShotProjectiles()
 			player2.UpdateShotProjectiles()
+			playerEnemies.UpdateEnemies()
+			player1.CheckEnemiesOverlap(&playerEnemies)
+			player2.CheckEnemiesOverlap(&playerEnemies)
+			player1.RemoveHitProjectiles()
+			player2.RemoveHitProjectiles()
+			playerEnemies.RemoveDeadEnemies()
+			playerEnemies.DrawEnemies()
+			player1.Draw()
+			player2.Draw()
+			player1.DrawShotProjectiles()
 			player2.DrawShotProjectiles()
 
 		case game.States.GameOver:

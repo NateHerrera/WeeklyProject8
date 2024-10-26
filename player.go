@@ -19,12 +19,12 @@ func NewPlayer(pos rl.Vector2, isMirrored bool) Player {
 	sprite := rl.LoadTexture("assets/ship.png")
 
 	// return the player with the starting position, sprite, and mirrored flag
-	return Player{Position: pos, Speed: 120, Sprite: sprite, IsMirrored: isMirrored, ShotProjectiles: make([]Projectile, 0, 100)}
+	return Player{Position: pos, Speed: 400, Sprite: sprite, IsMirrored: isMirrored, ShotProjectiles: make([]Projectile, 0, 100)}
 }
 
 func (p *Player) ShootProjectile() {
 	offset := p.Sprite.Width / 2
-	newSpeed := 120
+	newSpeed := 200
 	if p.IsMirrored {
 		offset *= -1
 		newSpeed *= -1
@@ -95,5 +95,25 @@ func (p *Player) Move(upKey, downKey int32) {
 func (p *Player) UpdateShotProjectiles() {
 	for i := 0; i < len(p.ShotProjectiles); i++ {
 		p.ShotProjectiles[i].MoveProjectile()
+	}
+}
+
+func (p *Player) CheckEnemiesOverlap(es *Enemies) {
+	for i, v := range p.ShotProjectiles {
+		for j, e := range es.allEnemies {
+			if v.CheckEnemyOverlap(e) {
+				p.ShotProjectiles[i].Hit = true
+				es.allEnemies[j].Damage()
+			}
+		}
+	}
+}
+
+func (p *Player) RemoveHitProjectiles() {
+	for i := 0; i < len(p.ShotProjectiles); i++ {
+		if p.ShotProjectiles[i].Hit {
+			p.ShotProjectiles = append(p.ShotProjectiles[:i], p.ShotProjectiles[i+1:]...)
+			i--
+		}
 	}
 }

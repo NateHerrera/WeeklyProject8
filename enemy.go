@@ -36,11 +36,19 @@ func SpawnEnemy(newSprite rl.Texture2D) Enemy {
 	return NewEnemy(rl.NewVector2(float32(rl.GetScreenWidth())/2, float32(newYPos)), newSpeed, newSprite)
 }
 
+func (e *Enemy) Damage() {
+	e.Health--
+	if e.Health < 0 {
+		e.Health = 0
+	}
+	rl.PlaySound(gameAudio.MonkeyDefeat)
+}
+
 func (e *Enemy) Move() {
 	adjustedSpeed := e.Speed * rl.GetFrameTime()
 	e.Position.X += adjustedSpeed
 }
 
 func (e *Enemy) DrawEnemy() {
-	DrawTextureEz(e.Sprite, e.Position, 0, 1, rl.White)
+	DrawTextureEz(e.Sprite, e.Position, 0, 2, rl.White)
 }
