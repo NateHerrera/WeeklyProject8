@@ -82,6 +82,7 @@ func main() {
 	// making a semi-transparent black color for the hud background
 	hudColor := rl.NewColor(0, 0, 0, 128)
 	mutedHudColor := rl.NewColor(0, 0, 0, 64)
+	borderColor := rl.NewColor(64, 200, 200, 64)
 
 	// main game loop - this keeps running till the window closes
 	for !rl.WindowShouldClose() {
@@ -147,15 +148,19 @@ func main() {
 			playerEnemies.UpdateEnemies()
 			player1.CheckEnemiesOverlap(&playerEnemies)
 			player2.CheckEnemiesOverlap(&playerEnemies)
+			player1.CheckHitBorder()
+			player2.CheckHitBorder()
 			player1.RemoveHitProjectiles()
 			player2.RemoveHitProjectiles()
 			playerEnemies.CheckOffScreen(&playerLives)
 			playerEnemies.RemoveDeadEnemies()
-			playerEnemies.DrawEnemies()
+
 			player1.Draw()
 			player2.Draw()
 			player1.DrawShotProjectiles()
 			player2.DrawShotProjectiles()
+			rl.DrawRectangle(int32(rl.GetScreenWidth())/2-50, 0, 100, int32(rl.GetScreenHeight()), borderColor)
+			playerEnemies.DrawEnemies()
 
 			rl.DrawRectangle(0, 0, 250, playerLives.Sprite.Height*2, mutedHudColor)
 			playerLives.DrawLives()
@@ -164,6 +169,16 @@ func main() {
 			// on game over screen, just show "Game Over" text
 			rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), hudColor)
 			rl.DrawText("Game Over", 350, 200, 30, rl.Red)
+			rl.DrawText("Press R to restart", 350, 600, 30, rl.Red)
+			if rl.IsKeyPressed(rl.KeyR) {
+				player1.ShotProjectiles = make([]Projectile, 0, 100)
+				player2.ShotProjectiles = make([]Projectile, 0, 100)
+				playerEnemies.allEnemies = make([]Enemy, 0, 100)
+				playerEnemies.AddEnemy()
+				playerLives.Number = 3
+				spawnTimer = 0
+				game.State = game.States.Playing
+			}
 		}
 
 		// finish drawing everything for this frame

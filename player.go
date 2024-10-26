@@ -109,6 +109,17 @@ func (p *Player) CheckEnemiesOverlap(es *Enemies) {
 	}
 }
 
+func (p *Player) CheckHitBorder() {
+	for i, v := range p.ShotProjectiles {
+		if v.Pos.X+v.Radius > float32(rl.GetScreenWidth()/2-50) && v.Pos.X+v.Radius < float32(rl.GetScreenWidth()/2+50) {
+			p.ShotProjectiles[i].Hit = true
+		}
+		if v.Pos.X-v.Radius > float32(rl.GetScreenWidth()/2-50) && v.Pos.X-v.Radius < float32(rl.GetScreenWidth()/2+50) {
+			p.ShotProjectiles[i].Hit = true
+		}
+	}
+}
+
 func (p *Player) RemoveHitProjectiles() {
 	for i := 0; i < len(p.ShotProjectiles); i++ {
 		if p.ShotProjectiles[i].Hit {
